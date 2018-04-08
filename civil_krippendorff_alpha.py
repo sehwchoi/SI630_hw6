@@ -11,6 +11,7 @@ Python version >= 2.4 required
 
 from __future__ import print_function
 import pandas as pd
+import numpy as np
 
 try:
     import numpy as np
@@ -128,7 +129,8 @@ if __name__ == '__main__':
         group_df = pd.read_csv(file, sep='\t')
         group_df_rate = list(group_df['Rate'])
         group_array.append(group_df_rate)
-    
+
+    print(group_array)
     print("nominal metric: %.3f" % krippendorff_alpha(group_array, nominal_metric, missing_items=missing))
     print("interval metric: %.3f" % krippendorff_alpha(group_array, interval_metric, missing_items=missing))
 
@@ -138,12 +140,18 @@ if __name__ == '__main__':
     crdsrc = crdsrc[crdsrc['_golden'] == False]  # remove test questions
     collist = ['_worker_id', '_unit_id', 'civility']
     tbl = crdsrc[collist]
+    pvt_tbl = tbl.pivot(index='_worker_id', columns='_unit_id', values='civility')
 
-    worker_rate_group_by_unit = tbl.groupby('_unit_id')['civility'].apply(list).reset_index(name='Rates')
+    print('Number of crowd workers:{}, Number of annoations per worker: {}'.format(pvt_tbl.shape[0], pvt_tbl.shape[1]))
+    pvt_tbl = pvt_tbl.fillna(missing)
 
-    worker_array = worker_rate_group_by_unit['Rates'].tolist()
-    print(type(worker_array), worker_array)
+    print(pvt_tbl)
+    print(type(pvt_tbl))
 
-    print("nominal metric: %.3f" % krippendorff_alpha(worker_array, nominal_metric, missing_items=missing))
-    print("interval metric: %.3f" % krippendorff_alpha(worker_array, interval_metric, missing_items=missing))
+    #worker_rate_group_by_unit = tbl.groupby('_unit_id')['civility'].apply(list).reset_index(name='Rates')
+
+    print(pvt_tbl.values)
+
+    print("nominal metric: %.3f" % krippendorff_alpha(pvt_tbl.values, nominal_metric, missing_items=missing))
+    print("interval metric: %.3f" % krippendorff_alpha(pvt_tbl.values, interval_metric, missing_items=missing))
 
