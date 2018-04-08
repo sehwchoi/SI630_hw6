@@ -115,28 +115,35 @@ def krippendorff_alpha(data, metric=interval_metric, force_vecmath=False, conver
     return 1.-Do/De if (Do and De) else 1.
 
 
-if __name__ == '__main__': 
-    print("Krippendorff's_Alpha for civility")
-
-    data = (
-        "*    *    *    *    *    3    4    1    2    1    1    3    3    *    3", # coder A
-        "1    *    2    1    3    3    4    3    *    *    *    *    *    *    *", # coder B
-        "*    *    2    1    3    4    4    *    2    1    1    3    3    *    4", # coder C
-    )
-
-    sh_df = pd.read_csv("group-13-sh.tsv", sep='\t')
-    sh_df_rate = list(sh_df['Rate'])
-
-    hj_df = pd.read_csv("group-13-hj.tsv", sep='\t')
-    hj_df_rate = list(hj_df['Rate'])
-
-    print("sh_df", sh_df_rate, "Length", len(sh_df['Rate']))
-    print("hj_df", hj_df_rate, "Length", len(hj_df['Rate']))
-
-    group_array = [sh_df_rate, hj_df_rate]
+if __name__ == '__main__':
 
     missing = '*' # indicator for missing values
-    #array = [d.split() for d in data]  # convert to 2D list of string items
+
+    print("Krippendorff's_Alpha for civility within group")
+
+    group_files = ["group-13-sh.tsv", "group-13-hj.tsv"]
+    group_array = []
+    for file in group_files:
+
+        group_df = pd.read_csv(file, sep='\t')
+        group_df_rate = list(group_df['Rate'])
+        group_array.append(group_df_rate)
     
     print("nominal metric: %.3f" % krippendorff_alpha(group_array, nominal_metric, missing_items=missing))
     print("interval metric: %.3f" % krippendorff_alpha(group_array, interval_metric, missing_items=missing))
+
+
+    print("Krippendorff's_Alpha for civility across workers")
+    crdsrc = pd.read_csv('f1255407.csv')
+    crdsrc = crdsrc[crdsrc['_golden'] == False]  # remove test questions
+    collist = ['_worker_id', '_unit_id', 'civility']
+    tbl = crdsrc[collist]
+
+    worker_rate_group_by_unit = tbl.groupby('_unit_id')['civility'].apply(list).reset_index(name='Rates')
+
+    worker_array = worker_rate_group_by_unit['Rates'].tolist()
+    print(type(worker_array), worker_array)
+
+    print("nominal metric: %.3f" % krippendorff_alpha(worker_array, nominal_metric, missing_items=missing))
+    print("interval metric: %.3f" % krippendorff_alpha(worker_array, interval_metric, missing_items=missing))
+
